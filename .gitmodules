@@ -1,0 +1,12 @@
+[submodule "ParallelPort"]
+	path = ParallelPort
+	url = https://github.com/Kh4l3tH/ParallelPort.git
+[submodule "Nanotec"]
+	path = Nanotec
+	url = https://github.com/Kh4l3tH/Nanotec.git
+[submodule "Schrittmotor"]
+	path = Schrittmotor
+	url = https://github.com/Kh4l3tH/Schrittmotor.git
+[submodule "Interpreter"]
+	path = Interpreter
+	url = https://github.com/Kh4l3tH/Interpreter.git
