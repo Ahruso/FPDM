@@ -1,22 +1,25 @@
+
 import math
 import matplotlib
 matplotlib.use('GTKAgg')
 import matplotlib.pyplot as plt
-import pickle
 
-class backen_ausdrehen(object):
+
+
+
+class BackenAusdrehen(object):
 
     def clean_up_profile(self):
         """Profil von Punkten bereinigen die nicht zum aktuellen Profil gehoeren
         
         
         """
-        self.old_profile = sorted(self.old_profile,key=lambda x: x[0], reverse=True)
+        self.old_profile = sorted(self.old_profile, key=lambda x: x[0], reverse=True)
         h = 0
         index = 0
-        rm_list =[]
+        rm_list = []
         for i in self.old_profile:
-            if h>=i[1] and index != 0:
+            if h >= i[1] and index != 0:
                 rm_list.insert(0,index)
             else:
                 h = i[1]
@@ -24,12 +27,12 @@ class backen_ausdrehen(object):
         while rm_list != []:
             del self.old_profile[rm_list[0]]
             del rm_list[0]
-        self.old_profile = sorted(self.old_profile,key=lambda x: x[0], reverse=False)
+        self.old_profile = sorted(self.old_profile, key=lambda x: x[0], reverse=False)
         h = 0
         index = 0
         rm_list =[]
         for i in self.old_profile:
-            if h>=i[0] and index != 0:
+            if h >= i[0] and index != 0:
                 rm_list.insert(0,index)
             else:
                 h = i[0]
@@ -42,26 +45,32 @@ class backen_ausdrehen(object):
 
     def print_old_profile(self):
         plt.clf()
-        plt.axis([self.x_offset_backe+self.backenlaenge+0.5,self.x_offset_backe-1,self.ausdrehlimit_z+0.5,-1])
+        plt.axis([self.x_offset_backe+self.backenlaenge+0.5, self.x_offset_backe-1, self.ausdrehlimit_z+0.5, -1])
         self.clean_up_profile()
         j = 0
-        plt.plot([self.x_offset_backe+self.backenlaenge+0.5,self.old_profile[j][0]],[0,self.old_profile[j][1]],'r-')
-        plt.fill_between([self.x_offset_backe+self.backenlaenge+0.5,self.x_offset_backe+self.backenlaenge+0.5,self.old_profile[j][0]],[0,self.ausdrehlimit_z+0.5,self.ausdrehlimit_z+0.5],color='b')
+        plt.plot([self.x_offset_backe+self.backenlaenge+0.5, self.old_profile[j][0]], [0, self.old_profile[j][1]], 'r-')
+        plt.fill_between([self.x_offset_backe+self.backenlaenge+0.5, self.x_offset_backe+self.backenlaenge+0.5,
+                          self.old_profile[j][0]], [0, self.ausdrehlimit_z+0.5, self.ausdrehlimit_z+0.5], color='b')
         while j < len(self.old_profile):
             if j < len(self.old_profile)-1:
-                plt.plot([self.old_profile[j][0],self.old_profile[j][0]],[self.old_profile[j][1],self.old_profile[j+1][1]],'r-')
-                plt.plot([self.old_profile[j][0],self.old_profile[j+1][0]],[self.old_profile[j+1][1],self.old_profile[j+1][1]],'r-')
-                plt.fill_between([self.old_profile[j+1][0],self.old_profile[j+1][0],self.old_profile[j][0]],[self.old_profile[j+1][1],self.ausdrehlimit_z+0.5,self.ausdrehlimit_z+0.5],[self.old_profile[j+1][1],self.old_profile[j+1][1],self.old_profile[j+1][1]],color='b')
-            j+=1
-        plt.plot([self.old_profile[-1][0], 0],[self.x_offset_backe, self.ausdrehlimit_z+0.5],'r-')
+                plt.plot([self.old_profile[j][0], self.old_profile[j][0]],
+                         [self.old_profile[j][1],self.old_profile[j+1][1]], 'r-')
+                plt.plot([self.old_profile[j][0], self.old_profile[j+1][0]],
+                         [self.old_profile[j+1][1], self.old_profile[j+1][1]],'r-')
+                plt.fill_between([self.old_profile[j+1][0], self.old_profile[j+1][0], self.old_profile[j][0]],
+                                 [self.old_profile[j+1][1], self.ausdrehlimit_z+0.5, self.ausdrehlimit_z+0.5],
+                                 [self.old_profile[j+1][1],self.old_profile[j+1][1],self.old_profile[j+1][1]],
+                                 color='b')
+            j += 1
+        plt.plot([self.old_profile[-1][0], 0], [self.x_offset_backe, self.ausdrehlimit_z+0.5], 'r-')
         plt.grid(True)
         plt.savefig("plot.png")
         return 0
 
-    def spannstufe(self,new_profile):
-        current_x = 0
-        current_z = 10
-        area = 0
+    def spannstufe(self, new_profile):
+        # current_x = 0
+        # current_z = 10
+        # area = 0
         new_profile = sorted(new_profile,key=lambda x: x[0], reverse=True)
         self.old_profile = sorted(self.old_profile,key=lambda x: x[0], reverse=True)
         '''
@@ -71,33 +80,32 @@ class backen_ausdrehen(object):
         Dazu wird ermittelt, wo das neue Profil anfaengt und die entsprechende hoehe als oberste Kante der Backe angegeben
         '''
         self.clean_up_profile()
-        hight_found = False
-        width_found = False
         aufl_start_z_found = False
         aufl_end_z_found = False
         if self.mindest_auflagefl > 3.0:
-            new_profile.append([round(new_profile[0][0] - 3.0,3),round(new_profile[0][1] + self.mindest_spannfl,3)])
+            new_profile.append([round(new_profile[0][0] - 3.0, 3), round(new_profile[0][1] + self.mindest_spannfl, 3)])
         else:
-            new_profile.append([round(new_profile[0][0] - self.mindest_auflagefl,3),round(new_profile[0][1] + self.mindest_spannfl,3)])
+            new_profile.append([round(new_profile[0][0] - self.mindest_auflagefl, 3),
+                                round(new_profile[0][1] + self.mindest_spannfl, 3)])
         for i in self.old_profile:
-            if i[0]<=new_profile[0][0] and new_profile[0][1] == 0 and aufl_start_z_found == False:
-                new_profile[0][1] = round(i[1],3)
-                new_profile[1][1] = round(new_profile[0][1] +self.mindest_spannfl,3)
-                aufl_start_z_found= True
-            if i[0]<=new_profile[1][0] and i[1] == new_profile[0][1] and aufl_end_z_found == False:
-                new_profile[1][1] = round(new_profile[0][1] + self.mindest_spannfl,3)
+            if i[0] <= new_profile[0][0] and new_profile[0][1] == 0 and aufl_start_z_found == False:
+                new_profile[0][1] = round(i[1], 3)
+                new_profile[1][1] = round(new_profile[0][1] + self.mindest_spannfl, 3)
+                aufl_start_z_found = True
+            if i[0] <= new_profile[1][0] and i[1] == new_profile[0][1] and aufl_end_z_found == False:
+                new_profile[1][1] = round(new_profile[0][1] + self.mindest_spannfl, 3)
                 aufl_end_z_found = True
                 break
             if i[0] < new_profile[1][0] and i[1] > new_profile[1][1] and aufl_end_z_found == False:
                 new_profile[1][1] = i[1]
-                new_profile[0][1] = round(new_profile[1][1] - self.mindest_spannfl,3)
+                new_profile[0][1] = round(new_profile[1][1] - self.mindest_spannfl, 3)
                 aufl_end_z_found = True
                 break
             if i[0] < new_profile[1][0] and i[1] < new_profile[1][1] and aufl_end_z_found == False:
                 break
         return new_profile
 
-    def spannstufe_koordinaten(self,start_run,end_run, depth):
+    def spannstufe_koordinaten(self, start_run, end_run, depth):
         block_area = 0
         block_time = 0
         end = []
@@ -115,42 +123,44 @@ class backen_ausdrehen(object):
                     if i[1] > start_run[1] :
                         break
                     current_x = i[0]
-                if round(math.fmod(end_run[1]-start_run[1],depth),3) > 0.0:
-                    end = [round(current_x-0.1,3),round(start_run[1]+math.fmod(end_run[1]-start_run[1],depth),3)]
+                if round(math.fmod(end_run[1]-start_run[1], depth), 3) > 0.0:
+                    end = [round(current_x-0.1, 3), round(start_run[1]+math.fmod(end_run[1]-start_run[1], depth), 3)]
                     for i in self.old_profile:
-                        if i[1]< end[1] and i[0]< end[0]:
-                            end[0] = round(i[0]-0.1,3)
-                    start_run = [start_run[0],round(start_run[1]+math.fmod(end_run[1]-start_run[1],depth),3)]
-                    if round(start_run[0]-end[0],3) > round(0.1,1):
-                        area = round((start_run[0]-current_x-0.1),3)
-                        step_time = round(area/(self.speed),3)
-                        step = [start_run,end,area,step_time]
-                        block_area = block_area + area
-                        block_time = block_time + step_time
+                        if i[1] < end[1] and i[0] < end[0]:
+                            end[0] = round(i[0]-0.1, 3)
+                    start_run = [start_run[0], round(start_run[1]+math.fmod(end_run[1]-start_run[1], depth), 3)]
+                    if round(start_run[0]-end[0], 3) > round(0.1, 1):
+                        area = round((start_run[0]-current_x-0.1), 3)
+                        step_time = round(area/self.speed, 3)
+                        step = [start_run, end, area, step_time]
+                        block_area += area
+                        block_time += step_time
                         self.aufl_counter += 1
                         block_aufl.append(step)
                 else:
-                    end = [round(current_x-0.1,3),round(start_run[1]+depth,3)]
+                    end = [round(current_x-0.1, 3), round(start_run[1]+depth, 3)]
                     for i in self.old_profile:
-                        if i[1]< end[1] and i[0]< end[0]:
-                            end[0] = round(i[0]-0.1,3)
-                    start_run = [start_run[0],round(start_run[1]+depth,3)]
-                    if round(start_run[0]-end[0],3) > round(0.1,1):
-                        area = round((start_run[0]-current_x-0.1),3)
-                        step_time = round(area/self.speed,3)
-                        step = [start_run,end,area,step_time]
-                        block_area = block_area + area
-                        block_time = block_time + step_time
+                        if i[1] < end[1] and i[0] < end[0]:
+                            end[0] = round(i[0]-0.1, 3)
+                    start_run = [start_run[0], round(start_run[1]+depth, 3)]
+                    if round(start_run[0]-end[0], 3) > round(0.1, 1):
+                        area = round((start_run[0]-current_x-0.1), 3)
+                        step_time = round(area/self.speed, 3)
+                        step = [start_run, end, area, step_time]
+                        block_area += area
+                        block_time += step_time
                         self.aufl_counter += 1
                         block_aufl.append(step)
         block_aufl.append(block_area)
         block_aufl.append(block_time)
         return block_aufl
 
-    def ueberhang(self,start_aufl,depth,erste_stufe_x,erste_stufe_y,new_profile):#start_run_ueb,end_run_ueb,depth):
-        self.ueb_counter = 0
+    def ueberhang(self,start_aufl,depth,erste_stufe_x,erste_stufe_y):#,new_profile):#start_run_ueb,end_run_ueb,depth):
+        #self.ueb_counter = 0
         if start_aufl[1]-self.old_profile[0][1] < erste_stufe_y:
             erste_stufe_y = start_aufl[1]-self.old_profile[0][1]
+        current_x = 0
+        current_z = 0
         step_ueb = []
         block_area = 0
         block_time = 0
@@ -173,7 +183,7 @@ class backen_ausdrehen(object):
         start_run = start_erste_stufe
         if (start_aufl[1]-start_erste_stufe[1]) > erste_stufe_y:
             if round(math.fmod((start_aufl[1]-start_erste_stufe[1]),depth),3) > 0:
-                start_run = [start_erste_stufe[0],round(start_erste_stufe[1]+(math.fmod((start_aufl[1]-start_erste_stufe[1]),depth)),3)]
+                start_run = [start_erste_stufe[0],round(start_erste_stufe[1] + (math.fmod((start_aufl[1]-start_erste_stufe[1]),depth)),3)]
                 end_run = [current_x-0.1,round(start_erste_stufe[1]+(math.fmod((start_aufl[1]-start_erste_stufe[1]),depth)),3)]
             else:
                 start_run = [start_erste_stufe[0],start_erste_stufe[1]+depth]
@@ -182,10 +192,10 @@ class backen_ausdrehen(object):
                 if i[1]< end_run[1] and i[0]< end_run[0]:
                     end_run[0] = i[0]-0.1
             area_ueb = round((start_run[0]-end_run[0]),3)
-            block_area = block_area + area_ueb
+            block_area += area_ueb
             step_ueb_time = round((area_ueb/self.speed),3)
             step_ueb = [start_run,end_run,area_ueb,step_ueb_time]
-            block_time = block_time + step_ueb_time
+            block_time += step_ueb_time
             self.aufl_counter += 1
             self.ueb_counter += 1
             block_ueb_run.append(step_ueb)
@@ -202,7 +212,7 @@ class backen_ausdrehen(object):
                         end_run[0] = round(i[0]-0.1,3)
                 area_ueb = round((start_run[0]-end_run[0]),3)
                 if start_run[1] > current_z:
-                    block_area = block_area + area_ueb
+                    block_area+= area_ueb
                     step_ueb_time = round((area_ueb/self.speed),3)
                     step_ueb = [start_run,end_run,area_ueb,step_ueb_time]
                     block_time = round(block_time + step_ueb_time,3)
@@ -210,7 +220,7 @@ class backen_ausdrehen(object):
                     self.ueb_counter += 1
                     block_ueb_run.append(step_ueb)
         #print "self.ueb_start", self.ueb_start
-        #self.ueb_start = start_run
+        self.ueb_start = start_run
         while (start_aufl[1] > start_run[1]):
             start_run = [round(start_run[0]-depth,3),round(start_run[1]+depth,3)]
             for i in self.old_profile:
@@ -225,6 +235,7 @@ class backen_ausdrehen(object):
             end_run = [round(current_x-0.1,3),start_run[1]]
             area_ueb = round((start_run[0]-end_run[0]),3)
             if start_run[1] > current_z:
+                self.ueb_end = [start_run[0],start_run[1]]
                 block_area = round(block_area + area_ueb,3)
                 step_ueb_time = round((area_ueb/self.speed),3)
                 step_ueb = [start_run,end_run,area_ueb,step_ueb_time]
@@ -368,12 +379,19 @@ class backen_ausdrehen(object):
         return self.old_profile
     
     def get_gcode_koord(self):
-        """liefert die Koordinaten zurueck, die in den Gcode fuer ein neues Backenprofil mit einfliessen"""
+        """
+        liefert die Koordinaten zurueck, die in den Gcode fuer ein neues Backenprofil mit einfliessen
+        :return: self.gcode_koord Array aus Koordinaten
+        """
         self.gcode_koord = []
         self.print_koordinates(self.block_ueb,self.block_stufe,self.block_rad,False)
         return self.gcode_koord
 
     def set_profile_tuple(self,profile_tuple):
+        """
+        :param profile_tuple:
+        :return:
+        """
         self.old_profile = sorted(profile_tuple,key=lambda x: x[0], reverse=True)
         self.print_old_profile()
 
@@ -396,7 +414,7 @@ class backen_ausdrehen(object):
         self.print_old_profile()
         self.new_profile = self.spannstufe(self.new_profile)
         self.block_stufe = self.spannstufe_koordinaten(self.new_profile[0],self.new_profile[1],self.depth)
-        self.block_ueb = self.ueberhang(self.new_profile[0],self.depth,self.ueberhang_stufe_x,self.ueberhang_stufe_z,self.new_profile)
+        self.block_ueb = self.ueberhang(self.new_profile[0],self.depth,self.ueberhang_stufe_x,self.ueberhang_stufe_z)#,self.new_profile)
         self.block_rad = self.rueckenradius(self.new_profile,self.hoehe_radius,self.depth)
         self.print_koordinates(self.block_ueb,self.block_stufe,self.block_rad,False)
         print self.block_stufe
@@ -414,7 +432,8 @@ class backen_ausdrehen(object):
         plt.figure(figsize=(6.5,2),dpi=200)
         self.aufl_counter = 0	#anzahl der schritte bis das Profil die Auflageflaeche erreicht hat
         self.x_offset_backe= 0	#Abstand der Spindelachse zur Backeninnenkante
-
+        self.ueb_start = []     #beschreibt die erste Eintrittsstelle des Werkzeugs beim Ausdrehen des Profils
+        self.ueb_end = []       #beschreibt das Ende des Ueberhangs bzw den Anfang der Auflagestufe
         self.new_profile = [[0,0]]      #Dieses Array enthaelt die Mindestangabe der Punkte fuer ein neues Backenprofil.
         """Das aktuell ausgedrehte Backenprofil 
         Ein Backenprofil besteht aus Koordinaten, die die innenliegenden Ecken beschreiben. Dabei wird von der oberen Innenkante der Backen aus gezaehlt.
@@ -435,3 +454,4 @@ class backen_ausdrehen(object):
         self.block_ueb = []             #Teil der koordinaten aus gcode_koord
         self.block_rad = []             #Teil der koordinaten aus gcode_koord
         self.est_time = 0
+        self.ueb_counter = 0
