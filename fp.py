@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 
-'''
-am 15.02.2016 11:30 Bauteil, Bcken und Programm erstellen versucht. Muss noch dran gearbeitet werden
 
-
-'''
-#bla bla bla
 #107,322 x
 #90,214 z
 
@@ -17,21 +12,10 @@ import sysconfig
 BASE = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
 libdir = os.path.join(BASE, "lib", "python")
 sys.path.insert(0, libdir)
-#datadir = os.path.join(BASE, "share", "linuxcnc")
-#xmlname = os.path.join(datadir,"fp.glade")
-
-#BASE = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
-#print BASE
-#sys.path.insert(0, os.path.join(BASE, "lib", "python"))
-#print os.path.join(BASE, "lib", "python")
 import gtk
 import gtk.glade
-#import gladevcp.makepins
-#from gladevcp.gladebuilder import GladeBuilder
-#import hal
 import pygtk
 import time
-#import linuxcnc
 import gio
 import threading
 import gobject
@@ -39,12 +23,11 @@ import datetime
 import gcode
 import hashlib
 import string
-import ende2
+import pt_pro_calc
 import shutil
 import pickle
 import logging
 import json
-#import filechooser
 
 
 class fp_GUI(object):
@@ -56,8 +39,8 @@ class fp_GUI(object):
   def announce_error(self,last_seen):
     '''
     announce_error: 
-    Die Funktion schliesst alle Fenster, bis auf das Fehlerfenster. Sie wird nur nach der Bestaetigung eines Fehlers aufgerufen. Dadurch wird verhindert, dass 
-    auf Eingaben erwartet wird, die sich auf einem Fenster im Hintergrund abspielen.
+    Die Funktion schliesst alle Fenster, bis auf das Fehlerfenster.
+    
     '''
     #self.main_window.hide()
     #self.editor_window.hide()
@@ -838,10 +821,8 @@ class fp_GUI(object):
       #self.announce_error(None)
   
   def on_calc_clicked(self, widget, data=None):
-    import ende2
-
     self.prog_lbl.set_markup("Aktuelles Programm:\n<b>Bitte warten</b>")
-    self.setup_referenzfahrt.emit("clicked")
+    #self.setup_referenzfahrt.emit("clicked")
     #self.last_seen = self.backen_window
     self.prep_mode = False
     self.backen.abgenutzt = False
@@ -889,7 +870,7 @@ class fp_GUI(object):
     #self.ausdrehlimit = float(self.ausdrehlimit_buf.get_text())
     #self.profile_tuple=[[3.5,0],[3,2],[2.0,2.5],[2,4],[1,4],[0.7,5],[0.5,5.5],[0,6],[0.5,5.5],[1,5],[0,3],[2,3.5],[1,3],[3.5,1],[3.2,2],[4,0],[0,6]]
     #print "4"
-    self.profile_tuple = self.backen.ausdrehen_calc([[self.durchm/2,0]],self.profile_tuple,self.cutting_speed_max,self.aufl ,self.spannfl,self.schnitttiefe,self.randbreite,self.randhoehe,self.radius,self.radius_hoehe,self.ausdrehlimit_z,self.ausdrehlimit_x,self.x_offset_backe,self.backenlaenge)
+    self.profile_tuple = self.backen.ausdrehen_calc([[self.durchm/2,0]],self.profile_tuple,self.cutting_speed_max,self.aufl ,self.spannfl,self.schnitttiefe,self.randbreite,self.randhoehe,self.radius,self.radius_hoehe,self.ausdrehlimit_z,self.x_offset_backe,self.backenlaenge)
 
     if self.backen.abgenutzt == True:
       self.gcode_error_buff.insert(self.gcode_error_buff.get_end_iter() , "Backe ist aufgebraucht\n")
@@ -988,8 +969,8 @@ class fp_GUI(object):
       #self.hal_gremlin1.set_property('show_program',False)
       #print "2"
       if self.program == 1:
-	#self.profile_tuple = self.backen.ausdrehen_start()
 	koordinaten = self.backen.get_gcode_koord()
+	#print koordinaten
 	gcode = self.backen_ordner + str(round(time.time(),0))+'.ngc'
 	j = 0
 	fd = open(gcode,'w+')
@@ -3075,33 +3056,20 @@ class fp_GUI(object):
   
   def on_backen_bearb_clicked(self, widget, data=None):
     self.bt_mode = False
-    d = sysconfig.get_config_vars()
-    for i in d:
-      print i, "  ::  ", d[i]
-      
-    #print sysconfig.get_config_vars()
-    #for i in dir(self):
-      #print	i, " :: " ,getattr(self,i)			
-    #print self.sizeof(self)
-    #self.hal_gremlin1 = self.builder.get_object("hal_gremlin1")
-    #print self.announce_error.__doc__
-    
-    
+    #d = sysconfig.get_config_vars()
+    #for i in d:
+      #print i, "  ::  ", d[i]
     self.neue_backe_template = """(lp0
 (lp1
 I%g
 aI0
 aa.""" %long(self.x_offset_backe)
-    
     self.backen.old_profile = self.profile_tuple
-    
     self.backen.x_offset_backe = self.x_offset_backe
     self.backen.backenlaenge = float(self.backenlaenge)
     self.backen.ausdrehlimit_z = self.ausdrehlimit_z
     self.backen.print_old_profile()
     self.backe_preview.set_from_file('plot.png')
-    #self.hal_gremlin1.set_property('view','y')
-    
     self.backen_window.show()
     self.init_window.hide()
     
@@ -3614,14 +3582,10 @@ aa.""" %long(self.x_offset_backe)
     #self.profile_tuple = [[0,0]]
     self.randhoehe = 1#float(self.randhoehe_buf.get_text())
     self.randbreite = 1#float(self.randbreite_buf.get_text())
-    #print "self.profile_tuple:" , self.profile_tuple
     if not(self.schnitttiefe > 0) or self.schnitttiefe > 0.25 and self.test_mode == 0:
       self.gcode_error_buff.insert(self.gcode_error_buff.get_end_iter() , "Vergessen die Schnitttiefe richtig einzutragen?")
       self.announce_error(None)
       return 0
-    
-    
-      
     self.bauteil_prog_ready = True
   #def on_auto_start_clicked(self, widget, data=None):
     #self.c.mode(linuxcnc.MODE_AUTO)
@@ -3699,59 +3663,32 @@ aa.""" %long(self.x_offset_backe)
     #self.bauteil_is_ready = True
     
   def on_bauteil_to_main_clicked(self, widget, data=None):
-    #self.hal_gremlin_bt.destroy()
     self.bauteil_window.hide()
     self.init_window.show()
     
   def on_bauteil_bearb_enter_notify_event(self, widget, data=None):
     self.window1.show()
-    print "hallo"
     
   def on_window1_leave_notify_event(self, widget, data=None):
     self.window1.hide()
-    print "wieder weg"
     
   def __init__(self):#, inifile):
-    #GTK Builder konfigurieren und starten
-    '''
-    -----------------------------------------------------------------------------------------------------------
-    GUI Variablen fuer den globalen Gebrauch
-    '''
-    
-    
-    
-    
-    
-    self.time3 = 0.0
-    self.time2 = time.time()
     self.backen_ordner = "backen_ausdrehen/"
     self.bauteil_ordner = "bauteil_bearbeiten/"
     self.file_loaded = False
     self.end_code = False
     self.wd = os.getcwd()
-    #GUI Variablen
     self.sf_changed = False
     self.builder = gtk.Builder()
     self.builder.add_from_file("fp.glade")
     self.builder.connect_signals(self)
     self.bearbeitung_beendet_led = self.builder.get_object("bearbeitung_beendet_led")
     self.bearbeitung_beendet = True
-    #halcomp = hal.component("fp_GUI")
-    
-    
     self.capital = False
     self.new_file_entry = self.builder.get_object("new_file_entry")
     self.new_file_name = self.builder.get_object("new_file_name")
     self.new_file_folder = self.builder.get_object("new_file_folder")
-    
-    
-    
-    
-    
     self.window1 = self.builder.get_object("window1")
-    
-    #self.vcp_toggleaction_estop1 = self.builder.get_object("vcp_toggleaction_estop1")
-    #self.vcp_toggleaction_power1 = self.builder.get_object("vcp_toggleaction_power1")
     self.gcode_error_window = self.builder.get_object("gcode_error_window")
     self.gcode_error_window.fullscreen()
     self.passwd_window = self.builder.get_object("passwd_window")
@@ -3761,13 +3698,11 @@ aa.""" %long(self.x_offset_backe)
     self.init_window.show()
     self.req_quit = self.builder.get_object("req_quit")
     self.last_seen = self.init_window
-
     self.save_new_file_window = self.builder.get_object("save_new_file_window")
     self.save_new_file_window.fullscreen()
     self.quit_window = self.builder.get_object("quit_window")
     self.quit_window.fullscreen()
     self.gcode_error_buff = self.builder.get_object("gcode_error_buff")    
-    
     self.state = -1
     self.machine_running = False
     self.machine_paused = False
@@ -3788,21 +3723,15 @@ aa.""" %long(self.x_offset_backe)
     self.override_value = 0
     self.override_value = float(self.cont_speed.get_value())/100
     self.estop_lbl = self.builder.get_object("estop_lbl")
-   
     self.machine_lbl = self.builder.get_object("machine_lbl")
-   
-    
     self.manual_ctrl = self.builder.get_object("manual_ctrl")
     self.cycle_count_lbl = self.builder.get_object("cycle_count_lbl")
-    
     self.restart_tab = self.builder.get_object("restart_tab")
     self.override_changed = False
     self.gcode_error_view = self.builder.get_object("gcode_error_view")
     self.gcode_has_errors = False
-    
     self.passwd_check_entry = self.builder.get_object("passwd_check_entry")
     self.passwd_check_buff = self.builder.get_object("passwd_check_buff")
-
     self.passwd_answer = self.builder.get_object("passwd_answer")
     self.new_passwd_entry = self.builder.get_object("new_passwd_entry")
     self.new_passwd_entry2= self.builder.get_object("new_passwd_entry2")
@@ -3813,33 +3742,13 @@ aa.""" %long(self.x_offset_backe)
     self.passwd_check_entry.set_visibility(False)
     self.new_passwd_entry.set_visibility(False)
     self.new_passwd_entry2.set_visibility(False)
-
-    
     file_filter_ngc = gtk.FileFilter()
-    
     file_filter_ngc.add_pattern("*.ngc")
     file_filter_ngc.add_pattern("*.NGC")
-
-    
     self.akt_prgm_lbl = self.builder.get_object("akt_prgm_lbl")
-    
-
-    
-    
     self.speed3 = self.builder.get_object("speed3")
     self.increment = self.speed["speed0"]
     self.jog_mode = self.j_mode["increment"]
-    
-
-    
-    
-    
-    
-
-   
-    
-    
-
     self.new_file_name = self.builder.get_object("new_file_name")
     self.new_file_folder = self.builder.get_object("new_file_folder")
     self.m100_btn = self.builder.get_object("m100_btn")
@@ -3852,47 +3761,8 @@ aa.""" %long(self.x_offset_backe)
     self.setup_z_u = self.builder.get_object("setup_z_u")
     self.setup_z_d = self.builder.get_object("setup_z_d")
     self.key_is_still_pressed = False
-    
     self.save_new_file_window.set_keep_above(True)
     self.save_new_file_window.fullscreen()
-    
-    #panel = gladevcp.makepins.GladePanel(halcomp,"fp.glade", self.builder, None)
-    #halcomp.ready()
-    
-    
-    #self.s = linuxcnc.stat()
-    #self.c = linuxcnc.command()
-    #self.e = linuxcnc.error_channel()
-    
-   
-    '''
-    Externe Zusatzprogrammdateien werden geprueft und ggf. neu erstellt.
-    Die Datein sind dann im Config ordner der entsprechenden Maschine zu finden.
-    
-    periodic_extern.py wird regelmaessig etwa alle 100ms ausgefuehrt
-    
-    startup_extern.py wird direkt nach der Initialisierung der GUI einmalig ausgefuehrt
-    
-    '''
-    try:
-      open(self.wd + "/periodic_extern.py", 'r')
-    except IOError:
-      try:
-	open(self.wd + "/periodic_extern.py", 'w+')
-      except IOError:
-	self.gcode_error_buff.insert(self.gcode_error_buff.get_end_iter() , 'Externe Datei "periodic_extern.py" konnte nicht geladen werden\n')
-	self.announce_error(None)
-    
-    try:
-      open(self.wd + "/startup_extern.py", 'r')
-    except IOError:
-      try:
-	open(self.wd + "/startup_extern.py", 'w+')
-      except IOError:
-	self.gcode_error_buff.insert(self.gcode_error_buff.get_end_iter() , 'Externe Datei "startup_extern.py" konnte nicht geladen werden\n')
-	self.announce_error(None)
-	
-      
     '''
     Das externe Logfile wird gelesen und fuer die entsprechenden Werte im Programm ausgewertet:
     -bauteillaenge_offset
@@ -3905,15 +3775,11 @@ aa.""" %long(self.x_offset_backe)
     Ist kein Logfile im Config-Ordner vorhanden, wird eins erstellt und mit Standardwerten gefuellt
     '''
     self.log_name = os.path.join(self.wd, 'cnc_logfile.csv')
-    
     if not os.path.isfile(self.log_name):
       open(self.wd + "/cnc_logfile.csv", "w+").close()
-    
     self.file_location = ''
     self.file_name = ''
     self.log_dict = self.load_logfile(self.log_name)
-    
-    
     self.cutting_speed_max = 10
     self.cutting_speed_scrub = 20
     self.cutting_speed_slow = 2
@@ -3921,11 +3787,8 @@ aa.""" %long(self.x_offset_backe)
     self.fase_cutting_speed = 5
     self.planen_cutting_speed = 15
     self.radius_cutting_speed = 2
-    
-    
     self.backe_estop = self.builder.get_object("backe_estop")
     self.bauteil_estop = self.builder.get_object("bauteil_estop")		
-    
     self.x_offset_backe = 12	#abstand von x=0 bis zur Backeninnenkante (muss ausgemessen und in den Code eingetragen werden. sollte dann immer gleich bleiben)
     self.z_offset_backe = -17.5		#anstand von z=0 bit zu Backenoberkante
     self.safe_pos_x = 0.0 	#in der Mitte der Spindelachse
@@ -3945,7 +3808,6 @@ aa.""" %long(self.x_offset_backe)
     self.est_time = self.builder.get_object("est_time")
     self.reset_koord = self.builder.get_object("reset_koord")
     self.backe_stop =  self.builder.get_object("backe_stop")
-    
     self.x_offset_backe_conf_buf = self.builder.get_object("x_offset_backe_conf_buf")
     self.conf_speed_0 = self.builder.get_object("conf_speed_0")
     self.conf_speed_1 = self.builder.get_object("conf_speed_1")
@@ -3963,7 +3825,6 @@ aa.""" %long(self.x_offset_backe)
     self.backe_to_main = self.builder.get_object("backe_to_main")
     self.backe_preview = self.builder.get_object("backe_preview")
     self.aufl_buf = self.builder.get_object("aufl_buf")
-    
     self.durchm_buf = self.builder.get_object("durchm_buf")
     self.spannfl_buf = self.builder.get_object("spannfl_buf")
     self.rad_buf = self.builder.get_object("rad_buf")
@@ -3972,16 +3833,10 @@ aa.""" %long(self.x_offset_backe)
     self.schnitttiefe_buf = self.builder.get_object("schnitttiefe_buf")
     self.randbreite_buf  = self.builder.get_object("randbreite_buf")
     self.randhoehe_buf = self.builder.get_object("randhoehe_buf")
-    #self.ausdrehlimit_buf = self.builder.get_object("ausdrehlimit_buf")
     self.load_backe_window = self.builder.get_object("load_backe_window")
     self.load_backe_window.fullscreen()
-    #self.setup_ok = self.builder.get_object("setup_ok")
-    
     self.setup_start = False
     self.setup_running = False
-    #self.setup_ok.set_label("Positions Setup quittieren\nund Einrichtung vorbereiten")
-    #self.hal_gremlin1 = self.builder.get_object("hal_gremlin1")
-    
     filters = self.load_backe_window.list_filters()
     file_filter = gtk.FileFilter()
     file_filter.add_pattern("*.backe")
@@ -4003,20 +3858,15 @@ aa.""" %long(self.x_offset_backe)
     self.randbreite = 1.0
     self.randhoehe = 1.0
     self.ausdrehlimit_z = 4.0
-    self.ausdrehlimit_x = 15
     self.backe_file_name = "neue_backe.backe"
     self.req_new_backe = False
     self.setup_btn = self.builder.get_object("setup_btn")
-    self.backen = ende2.backen_ausdrehen()#[[(self.durchm/2),0]],self.profile_tuple,self.cutting_speed_max,self.aufl,self.spannfl,self.schnitttiefe,self.randbreite,self.randhoehe,self.radius,self.ausdrehlimit_z,self.ausdrehlimit_x)
+    self.backen = pt_pro_calc.backen_ausdrehen()#[[(self.durchm/2),0]],self.profile_tuple,self.cutting_speed_max,self.aufl,self.spannfl,self.schnitttiefe,self.randbreite,self.randhoehe,self.radius,self.ausdrehlimit_z)
     self.b_load_lbl = self.builder.get_object("b_load_lbl")
     self.b_load_lbl.set_text("Aktuelle Backen:\nkeine Backe geladen")
     self.neue_backe_template = ""
-    
-    
     self.hal_ausdrehen_tbl = self.builder.get_object("hal_ausdrehen_tbl")
-    
     self.log_dict_changed = False
-    
     self.bauteil_window  = self.builder.get_object("bauteil_window")
     self.bauteil_window.fullscreen()
     self.manual_tbl_bt = self.builder.get_object("manual_tbl_bt")
@@ -4084,32 +3934,23 @@ aa.""" %long(self.x_offset_backe)
     except OSError:
       os.mkdir(self.bauteil_ordner)
       stat = os.stat(self.bauteil_ordner)
-  
-    
     dirlist = os.listdir(self.bauteil_ordner)
-     
     dirlist = sorted(dirlist,reverse=True)
+    
     while len(dirlist) > 50:
       os.remove(self.bauteil_ordner + dirlist[-1])
-      
       del dirlist[-1]
     
-    #self.inifile = inifile
-    #self.inifile = linuxcnc.ini(sys.argv[2])
     self.nc_folder = "/home/cnc/linuxcnc/nc_files"
-    #self.new_file_folder.set_current_folder(self.nc_folder)
-    #self.load_dialog.set_current_folder(self.nc_folder)
     self.load_backe_window.set_current_folder(self.nc_folder)
     self.load_bauteil_window.set_current_folder(self.nc_folder)
-   
-    gobject.timeout_add(200, self.periodic)
-    
-    os.system("python " + self.wd + "/startup_extern.py")
+    #os.system("python " + self.wd + "/startup_extern.py")
     self.version = "2.2016-02-16\n!!!TESTVERSION!!!\nkein Linuxcnc"
     
     logname = "cnc_errorlog.log"
     logging.basicConfig(filename=logname,level=logging.DEBUG, format='%(message)s')
     logging.getLogger().addHandler(logging.StreamHandler())
+    
     with open(logname,'w'):
       pass
     
@@ -4121,11 +3962,9 @@ aa.""" %long(self.x_offset_backe)
     self.time.set_text("")
     self.version1.set_text(self.version)
     self.time1.set_text("")
-   
     self.version_lbl = self.builder.get_object("version_lbl")
     self.manual_tbl = self.builder.get_object("manual_tbl")
     self.num_pad_tbl = self.builder.get_object("num_pad_tbl")
-    
     self.num_pad_0 = self.builder.get_object("num_pad_0")
     self.num_pad_1 = self.builder.get_object("num_pad_1")
     self.num_pad_2 = self.builder.get_object("num_pad_2")
@@ -4138,9 +3977,6 @@ aa.""" %long(self.x_offset_backe)
     self.num_pad_9 = self.builder.get_object("num_pad_9")
     self.num_pad_dot = self.builder.get_object("num_pad_dot")
     self.num_pad_empty = self.builder.get_object("num_pad_empty")
-    
-    #self.manual_tbl.hal_pin.set(False)
-    #self.num_pad_tbl.hal_pin.set(False)
     self.num_pad_btn = self.builder.get_object("num_pad_btn")
     self.manual_btn = self.builder.get_object("manual_btn")
     self.manual_btn.set_active(True)
@@ -4152,7 +3988,6 @@ aa.""" %long(self.x_offset_backe)
     self.program = 0
     self.backe_start = self.builder.get_object("backe_start")
     self.option_box = self.builder.get_object("option_box")
-    
     self.schnitttiefe_tf =self.builder.get_object("schnitttiefe_tf")
     self.durchm_tf = self.builder.get_object("durchm_tf")
     self.rad_tf = self.builder.get_object("rad_tf")
@@ -4176,8 +4011,6 @@ aa.""" %long(self.x_offset_backe)
     self.backe_stop = self.builder.get_object("backe_stop")
     self.backe_start.set_sensitive(False)
     self.backe_stop.set_sensitive(False)
-
-    
     self.master_config = self.builder.get_object("master_config")
     self.master_config.fullscreen()
     self.backe_lang.set_active(True)
@@ -4203,63 +4036,41 @@ aa.""" %long(self.x_offset_backe)
       self.load_bauteil_window.remove_filter(i)
     self.load_bauteil_window.set_filter(file_filter_bauteil)
     
-    
-    
     try: 
       self.backe_file_name = self.log_dict['backe_file_name']
-
     except KeyError:
       self.log_dict['backe_file_name'] = "neue_backe.backe"
       self.backe_file_name = self.log_dict['backe_file_name']
-      
-      
+    
     try: 
       self.x_offset_backe = float(self.log_dict['x_offset_backe'])
     except KeyError:
       self.log_dict['x_offset_backe'] = "12.0"
       self.x_offset_backe = float(self.log_dict['x_offset_backe'])
-      
-      
+    
     try: 
       self.z_offset_backe = float(self.log_dict['z_offset_backe'])
     except KeyError:
       self.log_dict['z_offset_backe'] = "-17.5"
       self.z_offset_backe = float(self.log_dict['z_offset_backe'])
-      
-    
-    #try: 
-      #self.ausdrehlimit_z = float(self.log_dict['ausdrehlimit_z'])
-    #except KeyError:
-      #self.log_dict['ausdrehlimit_z'] = "4"
-      #self.ausdrehlimit_z = float(self.log_dict['ausdrehlimit_z'])
-      
-    #try: 
-      #self.backenlaenge = float(self.log_dict['backenlaenge'])
-    #except KeyError:
-      #self.log_dict['backenlaenge'] = "25"
-      #self.backenlaenge = float(self.log_dict['backenlaenge'])
     
     try:
       self.schlichter_comp = float(self.log_dict['schlichter_comp'])
     except KeyError:
       self.log_dict['schlichter_comp'] = "5"
       self.schlichter_comp = float(self.log_dict['schlichter_comp'])
-
     
     try: 
       self.auflageflaeche_hoehe_m_schlichter = float(self.log_dict['auflageflaeche_hoehe_m_schlichter'])
     except KeyError:
       self.log_dict['auflageflaeche_hoehe_m_schlichter'] = "0"
       self.auflageflaeche_hoehe_m_schlichter = float(self.log_dict['auflageflaeche_hoehe_m_schlichter'])
-      
+    
     try:
       fd = open(self.backe_file_name,"rb")
-      #print "backen_file_name",self.backe_file_name
       self.profile_tuple = pickle.load(fd)
       fd.close()
       self.backen.set_profile_tuple(self.profile_tuple)
-      #print "backen.old_profile:", self.backen.old_profile
-      #print "self.profile_tuple:" ,self.profile_tuple
       self.backe_preview.set_from_file('plot.png')
       self.b_load_lbl.set_text("Aktuelle Backen:\n" + os.path.basename(self.backe_file_name))
     except IOError:
@@ -4267,34 +4078,27 @@ aa.""" %long(self.x_offset_backe)
     
     try:
       self.bauteil_file_name = self.log_dict["bauteil_file_name"]
-      
     except KeyError:
       self.log_dict["bauteil_file_name"] = "keins"
       self.bauteil_file_name = self.log_dict["bauteil_file_name"]
-      
+    
     try:
       fd = open(self.bauteil_file_name,"rb")
-      #print "bauteil_file_name",self.bauteil_file_name
       self.load_new_bauteil(json.load(fd))
       fd.close()
     except:
       self.load_new_bauteil(self.neues_bauteil_template)
-
-      
-   
+    
     try:
       self.file_location = str(self.log_dict['last_g_file'])
       if self.file_location != '':
 	self.file_name = self.file_location[self.file_location.rfind('/')+1: len(self.file_location)]	
 	self.file_loaded = True
-	
     except KeyError:
       self.log_dict['last_g_file'] = ''
       self.file_location = str(self.log_dict['last_g_file'])
       self.file_loaded = False
-      
-    
-      
+
     try:
       self.x_home_diff = float(self.log_dict['x_home_diff'])
     except KeyError:
@@ -4311,43 +4115,29 @@ aa.""" %long(self.x_offset_backe)
       passwd = self.log_dict['passwd']
     except KeyError:
       self.log_dict['passwd'] = "be2e41ec5420db9a790fc3dbab54b77d98e6265278412a16087196b95d0b2cb8"
-      
+    
     self.save_logfile(self.log_dict,self.log_name)    
     
     try:
       stat = os.stat(self.backen_ordner)
-      #for i in stat:
-	#print i
       os.path.isdir(self.backen_ordner)
-      #print "ja es ist ein Ordner"
     except OSError:
       os.mkdir(self.backen_ordner)
       stat = os.stat(self.backen_ordner)
-      #for i in stat:
-	#print i
-        #print "neuer Ordner wurde erstellt"
     
     dirlist = os.listdir(self.backen_ordner)
-    #for i in dirlist:
-      #print i
-      
-    #print "\n\n"
     dirlist = sorted(dirlist,reverse=True)
-    #for i in dirlist:
-      #print i
     while len(dirlist) > 50:
       os.remove(self.backen_ordner + dirlist[-1])
-      
-      #print "die Datei %s wurde geloescht" %dirlist[-1]
       del dirlist[-1]
     self.log_dict_changed = False
     self.x_home_diff = float(self.log_dict['x_home_diff'])
     self.z_home_diff = float(self.log_dict['z_home_diff'])
     self.bt_mode = False
     self.prep_mode = False
-    self.time3 = time.time()
-    self.time2 = self.time3 - self.time2
-    #print "Die Zeit, in der die Initialisierung stattgefunden hat: ", self.time2
+    gobject.timeout_add(200, self.periodic)
+
+    
 if __name__ == "__main__":
   if len(sys.argv) > 2 and sys.argv[1] == '-ini':
     app = fp_GUI(sys.argv[2])
@@ -4355,13 +4145,6 @@ if __name__ == "__main__":
     app = fp_GUI()
 
   
- # load a postgui file if one is present in the INI file
-  #postgui_halfile,inifile = fp_GUI.postgui(app)
-  #print "FPDMaschine postgui filename:",postgui_halfile
-
-  #if postgui_halfile:
-    #res = os.spawnvp(os.P_WAIT, "halcmd", ["halcmd", "-i",inifile,"-f", postgui_halfile])
-    #if res: raise SystemExit, res
   
   gtk.main()
   
