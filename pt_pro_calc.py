@@ -10,27 +10,38 @@ import matplotlib.pyplot as plt
 class BackenAusdrehen(object):
 
     def clean_up_profile(self):
-        """Profil von Punkten bereinigen die nicht zum aktuellen Profil gehoeren
-        
-        
+        """old_profile wird von ueberfluessigen Punkten befreit
+        Das old_profile Array wird in zwei verschiedenen Orientierungen geprueft. Alle Punkte, die sich ausserhalb
+        der Backe befinden wuerden werden geloescht, sodass die minimale Anzahl an Koordinaten uebrig bleibt,
+        die die Backe komplett beschreiben
+
+        :return:
         """
+
+        """ Array abwaerts sortieren"""
         self.old_profile = sorted(self.old_profile, key=lambda x: x[0], reverse=True)
         h = 0
         index = 0
         rm_list = []
+        """in der folgenden Schleife wird geprueft, ob es koordinaten gibt die oberhalb der Backe liegen(Z-Achse)"""
         for i in self.old_profile:
             if h >= i[1] and index != 0:
-                rm_list.insert(0,index)
+                rm_list.insert(0,index) #""" rm_list enthaelt die indizes der Koordinaten, die geloescht werden sollen"""
             else:
                 h = i[1]
             index += 1
-        while rm_list != []:
+        while rm_list != []:#"""punkte mit den Indizes aus rm_list werden aus old_profile entfernt"""
             del self.old_profile[rm_list[0]]
             del rm_list[0]
+        """Array aufwaerts sortieren"""
         self.old_profile = sorted(self.old_profile, key=lambda x: x[0], reverse=False)
         h = 0
         index = 0
         rm_list =[]
+        """
+        in der folgenden Schleife wird geprueft, ob es koordinaten gibt die auf der berflaeche
+        der Backe liegen(X-Achse)
+        """
         for i in self.old_profile:
             if h >= i[0] and index != 0:
                 rm_list.insert(0,index)
@@ -40,10 +51,17 @@ class BackenAusdrehen(object):
         while rm_list != []:
             del self.old_profile[rm_list[0]]
             del rm_list[0]
+        """Array wieder richtigherum sortieren"""
         self.old_profile = sorted(self.old_profile,key=lambda x: x[0], reverse=True)
         return 0
 
     def print_old_profile(self):
+        """Grafik wird mit myplotlib gezeichnet
+        Die koordinaten aus dem old_profile array werden ausgewertet und gezeichnet. Anschliessend wird das Bild in
+        plot.png gespeichert
+        :return:
+        """
+
         plt.clf()
         plt.axis([self.x_offset_backe+self.backenlaenge+0.5, self.x_offset_backe-1, self.ausdrehlimit_z+0.5, -1])
         self.clean_up_profile()
@@ -68,6 +86,13 @@ class BackenAusdrehen(object):
         return 0
 
     def spannstufe(self, new_profile):
+        """Die Koordinaten fuer die Backenstufe(Spannstufe), die das Bauteil haelt, werden berechnet
+        Es wird geprueft, auf welche hoehe die Spannstufe gelegt werden muss. Dazu wird geprueft wie weit die
+        Backen an der x-Position abgedreht sind. Die hoehe + spannflaechenhoehe wird dann in new_profile geschrieben.
+        Ausserdem wird auch noch die naechste Koordinate ins Array geschrieben, die das Ende der Spannstufe beschreibt
+        :param new_profile: die ersten Koordinaten, die aus den Parametern des Bauteils abgeleitet wurden
+        :return: new_profile enthaelt jetzt die Anfangs- und die Endkoordinate der Spannstufe
+        """
         # current_x = 0
         # current_z = 10
         # area = 0
@@ -82,7 +107,13 @@ class BackenAusdrehen(object):
         self.clean_up_profile()
         aufl_start_z_found = False
         aufl_end_z_found = False
+        """
+        Begrenzung der maximalen Auflageflaechenlaenge. Wollten die Bediener begrenzt haben, damit die Bauteile
+        nicht so viel Kontakt mit den Backen haben. Soll das geaendert werden, dann muss das auch noch im GCODE
+        Generator in der Funktion on_load_prog_clicked in fp.py geaendert werden
+        """
         if self.mindest_auflagefl > 3.0:
+
             new_profile.append([round(new_profile[0][0] - 3.0, 3), round(new_profile[0][1] + self.mindest_spannfl, 3)])
         else:
             new_profile.append([round(new_profile[0][0] - self.mindest_auflagefl, 3),
@@ -106,6 +137,16 @@ class BackenAusdrehen(object):
         return new_profile
 
     def spannstufe_koordinaten(self, start_run, end_run, depth):
+        """Koordinaten fuer die Spannstufe werden berechnet
+        Anhand der maximalen Schnitttiefe werden die Koordinaten berechnet, die nachher zur Erzeugung des GCODES
+        benutzt werden.
+        :param start_run:   Startkoordinate der aktuellen abzudrehenden Schicht, Wird mit jedem schnitt veraendert
+        :param end_run: Endkoordinate der aktuellen Stufe(hier die Spannstufe
+        :param depth: die maximale Schnitttiefe fuer die Bearbeitung
+        :return: Die Koordinaten der Spannstufe in einem Array, das wie folgt aufgebaut ist:
+        (((startx1,startz1),(endex1,endez1)schnittlaenge in mm, schnittdauer),...,
+        ((startxn,startzn),(endexn,endezn)schnittlaenge in mm, schnittdauer)) fuer n Schnittebenen.
+        """
         block_area = 0
         block_time = 0
         end = []
@@ -156,6 +197,15 @@ class BackenAusdrehen(object):
         return block_aufl
 
     def ueberhang(self,start_aufl,depth,erste_stufe_x,erste_stufe_y):#,new_profile):#start_run_ueb,end_run_ueb,depth):
+        """Berechnung der Ueberhangstufe
+        So aehnlich wie Spannstufe mit Spannstufe_koordinaten direkt im Anschluss. Dabei werden aber Koordinaten
+        erzeugt, die beim Ausdrehen eine
+        :param start_aufl: Startpunkt der Spannstufe. Von hier aus wird die Ueberhangstufe berechnet
+        :param depth: maximale Schnitttiefe
+        :param erste_stufe_x: laenge der Ueberhangstufe. Konstante in fp.py
+        :param erste_stufe_y: hoehe der Ueberhangstufe. Konstante in fp.py
+        :return: Array nach Format wie auch das return von Spannstufe_koordinaten nur fuer den Ueberhang
+        """
         #self.ueb_counter = 0
         if start_aufl[1]-self.old_profile[0][1] < erste_stufe_y:
             erste_stufe_y = start_aufl[1]-self.old_profile[0][1]
@@ -248,10 +298,21 @@ class BackenAusdrehen(object):
         return block_ueb_run
 
     def rueckenradius(self,new_profile,hoehe_radius, depth):
+        """Berechnet die Koordinaten fuer die Radiusstufe
+        Berechnet die Koordinaten, die zur Erzeugung des GCODES fuer die Radrueckenstufe genutzt werden. Dabei
+        faengt die Stufe am Endpunkt der Spannstufe an und endet am Ende der Backe auf einer hoehe die im folgenden
+        noch berechnet wird
+
+        :param new_profile: Array mit den Koordinaten fuer die Stufen der neuen Backe
+        :param hoehe_radius: der Abstand zwischen der Auflageflaeche und der Planflaeche an der Unterseite des Bauteils
+        :param depth: maximale schnitttiefe
+        :return: Array nach Format wie auch das return von Spannstufe_koordinaten, allerdings fuer die Radrueckenstufe
+        """
         end_aufl = new_profile[1]
         current_z = 0
         current_x = 0
         schrittweite_y = round(depth,3)
+        #hier beginnt die hoehenberechnung
         l = new_profile[0][0]-self.mindest_auflagefl - self.ruecken_nabe_durchm/2
         steigung = hoehe_radius/l
         d = steigung *(new_profile[0][0]-self.mindest_auflagefl-self.x_offset_backe)
@@ -317,6 +378,15 @@ class BackenAusdrehen(object):
         return block_rad
 
     def print_koordinates(self,block_ueb,block_stufe,block_rad,run):
+        """Zeichnen der Schnittstufen in die Grafik der Backenvorschau und schreiben der neuen Koordinaten
+        in das old_profile Backenarray
+        Die einzelnen Stufenbloecke werden nacheinander ausgewertet und in das Backenprofil eingefuegt.
+        :param block_ueb: Koordinatenarray der Ueberhangstufe
+        :param block_stufe: Koordinatenarray der Spannstufe
+        :param block_rad: Koordinatenarray der Radiusstufe
+        :param run: Flag, welches Anzeigt, ob die Funktion
+        :return: 0
+        """
         j = 0
         for i in block_ueb:
             j += 1
@@ -375,6 +445,10 @@ class BackenAusdrehen(object):
         return 0
         
     def get_old_profile(self):
+        """
+
+        :return:
+        """
         self.print_old_profile()
         return self.old_profile
     
