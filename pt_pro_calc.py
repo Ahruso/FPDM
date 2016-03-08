@@ -384,7 +384,7 @@ class BackenAusdrehen(object):
         :param block_ueb: Koordinatenarray der Ueberhangstufe
         :param block_stufe: Koordinatenarray der Spannstufe
         :param block_rad: Koordinatenarray der Radiusstufe
-        :param run: Flag, welches Anzeigt, ob die Funktion
+        :param run: Flag, welches steuert, ob die neuen Koordinaten auch in das old_profile Array geschrieben werden sllen oder nicht
         :return: 0
         """
         j = 0
@@ -445,9 +445,10 @@ class BackenAusdrehen(object):
         return 0
         
     def get_old_profile(self):
-        """
-
-        :return:
+        """ Zeichnet die Grafik fuer die Backen und gibt das Backenprofil zurueck
+        Ist eigentlich umstaendlich gemacht und sollte vielleicht direkt in der aufrufenden Funktion umgesetzt werden.
+        So wie es jetzt ist, ist es waehrend der Entwicklung gewachsen und deswegen eventuell etwas unsinnig.
+        :return: Array mit Backenkoordinaten
         """
         self.print_old_profile()
         return self.old_profile
@@ -462,14 +463,36 @@ class BackenAusdrehen(object):
         return self.gcode_koord
 
     def set_profile_tuple(self,profile_tuple):
-        """
-        :param profile_tuple:
-        :return:
+        """ Bekommt ein Array mit Koordinaten uebergeben und speichert es im Backen-Array
+        Die Funktion wird in FP immer dann aufgerufen, wenn ein aelteres Backenprofil geladen wird. Dann wird das Backenprofil sortiert
+        und mit print_old_profile gezeichnet. Das passiert einmal zum Start des Programms und ausserdem immer wenn man auf den Button
+        Backen laden klickt und sich alte Backen aussucht.
+        :param profile_tuple: Ein Array welches Backenkoordinaten enthaelt.
         """
         self.old_profile = sorted(profile_tuple,key=lambda x: x[0], reverse=True)
         self.print_old_profile()
 
     def ausdrehen_calc(self,koord_tuple,profile_tuple,speed,mindest_auflagefl,mindest_spannfl,depth,ueberhang_stufe_x,ueberhang_stufe_z,ruecken_nabe_durchm,hoehe_radius,ausdrehlimit_z,backe_innenkante,backenlaenge):
+        """ Fuehrt alle Funktionen aus, sodass zum Schluss die Koordinaten zum Ausdrehen der Backen feststehen und das neue Profil der Backen
+        wird zurueckgegeben
+
+        :param koord_tuple: Koordinaten der Wirkgeometrie fuer die Backen. Enthealt bis hier her nur ddie ersten zwei Punkte
+        :param profile_tuple: Die Koordinaten des aktuellen Backenprofils
+        :param speed: Die Vorschubgeschwindigkeit fuer den Drehprozess. Dient hier nur zur Berechnung der Prozesszeit
+        :param mindest_auflagefl: Die laenge der Auflageflaeche, so wie sie im Textfeld der Software eingegeben wurde
+        :param mindest_spannfl: Die heohe der Spannflaeche, wie sie im Textfeld der Software eingegeben wurde
+        :param depth: die maximale Schnitttiefe fuer den Bearbeitungsprozess, wie sie im Textfeld der Software eingegeben wurde
+        :param ueberhang_stufe_x: laenge der Ueberhangstufe. Dieser Wert ist eine Konstante in FP und heisst dort "randbreite"
+        :param ueberhang_stufe_z: hoehe der Ueberhangstufe. Dieser Wert ist eine Konstante in FP und heisst dort "randhoehe"
+        :param ruecken_nabe_durchm: Entspricht der Angabe in der GUI fuer den Durchmesser fuer die Planflaeche am Bauteil Ruecken
+        :param hoehe_radius: Entspricht der Angabe in der GUI fuer den Abstand der Planflaeche zur Auflageflaeche
+        :param ausdrehlimit_z: Dies ist die hoehe, die maximal in die Backen eingedreht werden kann.
+        :param backe_innenkante: ungefaehrer Abstand der Spindeldrehachse bis zu der Innenkante der Backen.
+        :param backenlaenge: Angabe wie weit die Backen maximal ausgedreht werden koennen. Die eigentliche Laenge der Backen ist
+        groesser, aber diese Grenze wurde einfach aus praktischen Gruenden gewaehlt. Kann vielleicht auch noch geaendert werden
+        :return: gibt das alte Backenprofil wieder zurueck
+        """
+
         self.speed = speed
         self.mindest_auflagefl = mindest_auflagefl
         self.mindest_spannfl = mindest_spannfl
@@ -491,12 +514,18 @@ class BackenAusdrehen(object):
         self.block_ueb = self.ueberhang(self.new_profile[0],self.depth,self.ueberhang_stufe_x,self.ueberhang_stufe_z)#,self.new_profile)
         self.block_rad = self.rueckenradius(self.new_profile,self.hoehe_radius,self.depth)
         self.print_koordinates(self.block_ueb,self.block_stufe,self.block_rad,False)
-        print self.block_stufe
+        # print self.block_stufe
         return self.old_profile
 
     def ausdrehen_start(self):
+        """ Erzeut die Koordinaten fuer den Ausdrehprozess und schreibt sie dann auch ins old_profile array
+
+        :return: gibt das neue Backenprofil zurueck
+        """
+
         self.print_koordinates(self.block_ueb,self.block_stufe,self.block_rad,True)
         return self.old_profile
+
 
     def __init__(self):
         #die meisten der folgenden Variablen werden in ausdrehen_calc vom aufrufenden Prozess definiert

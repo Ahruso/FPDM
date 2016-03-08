@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
+"""
 
-#107,322 x
-#90,214 z
+"""
 
 import os
 import sys
@@ -23,10 +23,12 @@ class fp_GUI(object):
     
     
     def announce_error(self):
-        """
-
+        """ versteckt alle Fenster und oeffnet das Fenster fuer die Fehlermeldungen sobald ein registrierter Fehler auftritt
+        Im geoeffneten Fenster werden dann entsprechende Texte zu den Fehlern angezeigt. Diese Funktion wird immer zusammen mit
+        einem Eintrag in den Fehlerbuffer aufgerufen. Man koennte den Fehlerbuffer auch hier in der Funktion beschreiben und die Fehlermeldung
+        als String uebergeben. Waere eine Ueberlegung fuer eine naechste Version der Software
         :param last_seen: letztes Fenster, das geoeffnet wurde, bevor der Fehler aufgetreten ist
-        :return:
+        :return: 0
         """
         self.passwd_window.hide()
         self.quit_window.hide()
@@ -44,16 +46,19 @@ class fp_GUI(object):
         return 0
     
     def bauteil_berechnen(self):
+        """ Erzeugt aus den GUI Eingabewerten den GCODE fuer die Bearbeitung der Bauteile und schreibt den Code in eine Datei
+        :return: Dateiname der gerade erzeugten GCODE Datei
+        """
         bauteil_ankratzhoehe = self.auflageflaeche_hoehe_m_schlichter-self.length_ist+self.radius_hoehe
         bauteil_abschlusshoehe = self.auflageflaeche_hoehe_m_schlichter-self.length_soll+self.radius_hoehe
         safe_pos_x = 0
         safe_pos_z = bauteil_ankratzhoehe - 20
-        fase = False
-        fase = self.bearb_fase.get_active()
-        planen = False
-        planen = self.bearb_planen.get_active()
-        radius = False
-        radius = self.bearb_radius.get_active()
+        # fase = False
+        # fase = self.bearb_fase.get_active()
+        # planen = False
+        # planen = self.bearb_planen.get_active()
+        # radius = False
+        # radius = self.bearb_radius.get_active()
         andruecker_x_inpos = 43			#nachmessen
         andruecker_z_offset = -1			#die andrueckflaeche des Andrueckers befindet sich xx mm hoeher als die Werkzeugspitze
         andruecker_z_safe = bauteil_ankratzhoehe-5 	#das muesste eigentlich hinkommen, weil der andruecker hoeher liegt als das Werkzeug
@@ -73,7 +78,13 @@ class fp_GUI(object):
         fd.write("M100\n")
         fd.write("G61\n")
         if self.length_ist > self.length_soll:
-            
+
+            """
+            Schruppen der Bauteillaenge mit einem Rest von drei Hundertsteln zur Soll Bauteillaenge
+            Nur wenn die angegebene SOLL-Laenge kleiner als die IST-Laenge ist, wird die Laengenbeareitung auch durchgefuehrt.
+            Von der Angabe der Soll laenge haengt auch ab, wie weit der Andruecker zum andruecken herabfaehrt.
+            """
+
             fd.write("G43 H1\n")
             fd.write("G42 D1\n")
             
@@ -87,6 +98,9 @@ class fp_GUI(object):
             
         #fd.write("G42 D1\n")
         if self.length_fase > 0 :
+            """
+            Wenn die Fase nicht groesser als 0 gewaehlt wird, dann wird der Teil des Prozesses ausgelassen
+            """
             fd.write("G40\n")
             fd.write("G49\n")
             #fd.write("G61\n")
@@ -101,7 +115,10 @@ class fp_GUI(object):
         else:
             #fd.write("g01 X%3.3f Z%3.3f F%f\n" %(safe_pos_x, bauteil_abschlusshoehe,self.positioning_speed))
             pass
-        if self.length_ist > self.length_soll: 
+        if self.length_ist > self.length_soll:
+            """
+            Schlichten der Bauteillaenge auf die endgueltige Soll-Bauteillaenge
+            """
             fd.write("G40\n")
             fd.write("G49\n")
             #fd.write("G61\n")
@@ -176,16 +193,13 @@ class fp_GUI(object):
         return gcode
     
      
-    
-    '''
-    load_logfile:
-    Das Logfile am ort "file_location" wird eingelesen und in ein Dictionary geschrieben, auf das im Laufe der Programmausfuehrung zugegriffen werden kann,
-    um Werte fuer die Maschine auszulesen.
-     
-    in: String file_location	-> Ort der cnc_logfile.csv. In dieser befinden sich informationen zum aktuellen Stand der entsprechenden Maschine.(Siehe init Bereich
-    out: Dictionary		-> Ein Dictionary mit entsprechenden Schluesseln und Werten fuer die Maschine
-    '''
+
     def load_logfile(self, file_location):
+        """Das Logfile am ort "file_location" wird eingelesen und in ein Dictionary geschrieben, auf das im Laufe der Programmausfuehrung zugegriffen werden kann,
+        um Werte fuer die Maschine auszulesen.
+        :param file_location: Ort der cnc_logfile.csv. In dieser befinden sich informationen zum aktuellen Stand der entsprechenden Maschine.(Siehe init Bereich
+        :return:Ein Dictionary mit entsprechenden Schluesseln und Werten fuer die Maschine
+        """
         log_dict = {}
         try:
             log_source = open(file_location, 'r')
@@ -199,15 +213,15 @@ class fp_GUI(object):
             return -1
         return log_dict
     
-    
-    '''
-    save_logfile:
-    Das aktuelle Log Dictionary wird in die Datei an "file_location" geschrieben.
-    
-    in: log_dict			-> Ein Dictionary, welches die aktuellen Informationen der Maschine enthaelt. (Siehe Init Bereich)
-    in: file_location		-> Der Ort des Logfiles im Maschinenconfigordners
-    '''
+
     def save_logfile(self, log_dict, file_location):
+        """Schreiben des Dictionaries log_dict in ein File an der Stelle file Location.
+
+        :param log_dict: Dictionary mit verschiedenen Parametern, die unabhaengig von den Laufzeitvariablen extern gespeichert werden sollen
+        :param file_location: Pfad an dem das Dictionary gespeichert werden soll
+        :return: 0 bei Erfolg. -1 bei IOError
+        """
+
         #print "2"
         try:
             log_source = open(file_location, 'w+')
@@ -225,13 +239,12 @@ class fp_GUI(object):
         
     
 
-    
-    '''
-    make_new_file:
-    wenn ein neues Programm erstellt werden soll, dann wird nach der Bestaetigung des neuen Namens diese Funktion aufgerufen, um ein neues File im nc_files
-    Ordner zu erstellen. Gelingt das, wird check_file aufgerufen, ansonsten ein Fehler ausgegeben.
-    '''
+
     def make_new_file(self):
+        """Wenn ein neues Programm erstellt werden soll, dann wird nach der Bestaetigung des neuen Namens diese Funktion aufgerufen, um ein neues File im nc_files
+        Ordner zu erstellen. Gelingt das, wird check_file aufgerufen, ansonsten ein Fehler ausgegeben.
+
+        """
         if self.req_new_backe == True:
             self.backe_file_name = self.nc_folder + "/" + self.new_file_entry.get_text()
             if (self.backe_file_name.find('.backe') == -1) or (self.backe_file_name.find('.BACKE') == -1):
@@ -300,12 +313,17 @@ class fp_GUI(object):
             #self.announce_error()
             #return -1
             
-    '''
-    passwd_check:
-    Vergleicht das eingegebene Passwort mit dem aus dem Logfile. Verglichen werden die Hashes und nicht die Passwoerter selbst.
-    out: Boolean		-> True wenn Passwoerter uebereinstimmen, ansonsten False
-    '''
+
     def load_new_bauteil(self,param_dict):
+        """Laedt Werte aus einem Dictionary in die entsprechenden Buffer und Textfelder der GUI
+        TODO: Vielleicht kann man diese Funktion direkt an die Stelle verlegen wo sie aufgerufen wird, sollte dieser
+        separate Funktionsaufruf unkomfortabel sein.
+        Beim Laden der Bauteilparameter aus einer Datei wird nach dem Lesen der Datei das daraus erzeugte
+        Dictionary an diese Funktion uebergeben. Dann werden die Parameter hier in die Buffer und Textfelder eingetragen
+
+        :param param_dict: Dictionary mit den Parametern fuer die Bauteile.
+        :return:
+        """
         self.durchm_buf.delete_text(0,len(self.durchm_buf.get_text()))	
         self.durchm_buf.insert_text(self.durchm_tf_bt.get_position(), str(param_dict['durchm']), -1)
         self.rad_buf.delete_text(0,len(self.rad_buf.get_text()))	
@@ -335,6 +353,10 @@ class fp_GUI(object):
         
     
     def save_bauteil(self):
+        """Eingegebene bauteilparameter werden in einem File mit dem Pfad bauteil_file_name gespeichert
+        in frueheren Versionen wurden die Files im Pickle Format abgelegt. Diese sind nichr ordentlich von Menschen lesbar, darum
+        wird jetzt das json Format benutzt.
+        """
         self.neues_bauteil = {"durchm" : float(self.durchm_buf.get_text()) , 
                             "rueckenradius" : float(self.rad_buf.get_text()),
                             "rueckenradius_hoehe" : float(self.hoehe_rad_buf.get_text()),
@@ -363,6 +385,9 @@ class fp_GUI(object):
         
         
     def passwd_check(self):
+        """Vergleicht das eingegebene Passwort mit dem aus dem Logfile. Verglichen werden die Hashes und nicht die Passwoerter selbst.
+        :return: True wenn Passwoerter uebereinstimmen, ansonsten False
+        """
         i = 0
         
         passwd = str(self.passwd_check_buff.get_text())
@@ -382,13 +407,13 @@ class fp_GUI(object):
     
     '''
     make_new_passwd:
-    Vergleicht die Passwoerter in den Puffern zur Erstellung eines neuen Passwortes und ruft passwd_check auf. Falls die Anforderungen stimmen, wird 
-    der Hashwert des neuen Passworts berechnet und ins Logfile geschrieben.
-    out: Boolean 		-> True falls neues Passwort erzeugt wurde, ansonsten False
     '''
     
     def make_new_passwd(self):
-        
+        """Vergleicht die Passwoerter in den Puffern zur Erstellung eines neuen Passwortes und ruft passwd_check auf. Falls die Anforderungen stimmen, wird
+        der Hashwert des neuen Passworts berechnet und ins Logfile geschrieben.
+        :return: True falls neues Passwort erzeugt wurde, ansonsten False
+        """
         a = self.new_passwd_buff.get_text() 
         b = self.new_passwd_buff2.get_text()
         if len(a) !=4 or len(b) != 4:
@@ -414,11 +439,38 @@ class fp_GUI(object):
             
     '''
     periodic:
-    fuehrt regelmaessig in 100ms Intervallen diverse pruefungen und andere Operationen durch
+
     '''
     
     def periodic(self):
-        self.time2 = time.time()
+        """
+        fuehrt regelmaessig in 100ms Intervallen diverse Pruefungen und andere Operationen durch, da viele Sachen noch nicht eventgesteuert funktionieren
+        Das sollte aber irgendwann geaendert werden. Der Funktionsaufruf findet am Ende der __INIT__ statt. dort kann auch der Intervall geaendert werden
+        Momentan ist alles auskommentiert, da die Kommunikation mit den Nanotec Karten anders funktionieren wird. Wahrscheinlich wird
+        es so aussehen, dass nur darauf gewartet wird, dass eine entsprechende Meldung aus dem Seriellen Port kommt, die dann interpretiert werden
+        muss
+        """
+        if self.manual_btn.get_active() :
+            self.manual_tbl.show()
+            self.num_pad_tbl.hide()
+        #elif self.preview_btn.get_active():
+            #self.manual_tbl.hide()
+            #self.num_pad_tbl.hide()
+        elif self.num_pad_btn.get_active():
+            self.manual_tbl.hide()
+            self.num_pad_tbl.show()
+
+        if self.manual_btn_bt.get_active() :
+            self.manual_tbl_bt.show()
+            self.num_pad_tbl_bt.hide()
+        #elif self.preview_btn_bt.get_active():
+            #self.manual_tbl_bt.hide()
+            #self.num_pad_tbl_bt.hide()
+        elif self.num_pad_btn_bt.get_active():
+            self.manual_tbl_bt.hide()
+            self.num_pad_tbl_bt.show()
+
+        # self.time2 = time.time()
         #self.s.poll()
         #error = self.e.poll()
         #print "state = " + str(self.s.state)
@@ -492,26 +544,7 @@ class fp_GUI(object):
             
         
         
-        if self.manual_btn.get_active() :
-            self.manual_tbl.show()
-            self.num_pad_tbl.hide()
-        #elif self.preview_btn.get_active():
-            #self.manual_tbl.hide()
-            #self.num_pad_tbl.hide()
-        elif self.num_pad_btn.get_active():
-            self.manual_tbl.hide()
-            self.num_pad_tbl.show()
-        
-        if self.manual_btn_bt.get_active() :
-            self.manual_tbl_bt.show()
-            self.num_pad_tbl_bt.hide()
-        #elif self.preview_btn_bt.get_active():
-            #self.manual_tbl_bt.hide()
-            #self.num_pad_tbl_bt.hide()
-        elif self.num_pad_btn_bt.get_active():
-            self.manual_tbl_bt.hide()
-            self.num_pad_tbl_bt.show()
-        
+
             
             
         
@@ -616,8 +649,17 @@ class fp_GUI(object):
         
     def on_bauteil_window_key_release_event(self, widget, event):
         self.master_config.emit("key-release-event",event)
-    
+
+
+
     def on_master_config_key_press_event(self, widget, event):
+        """in dieser Funktion werden die Key Press Events des Config Windows ausgewertet. Fuer jedes weitere Fenster gibt es ein entsprechendes
+        Event, welches diese Funktion aufruft und die Funktionalitaet auf die anderen Windows erweitert.
+        Muss in Zukunft ebenfalls fuer die Serielle Nanotec Steuerung angepasst werden
+
+
+        """
+
         keyname = gtk.gdk.keyval_name(event.keyval)
         if self.key_is_still_pressed == False:
             if keyname == "C":
@@ -3024,10 +3066,10 @@ class fp_GUI(object):
         #for i in d:
             #print i, "    ::    ", d[i]
         self.neue_backe_template = """(lp0
-(lp1
-I%g
-aI0
-aa.""" %long(self.x_offset_backe)
+                                        (lp1
+                                        I%g
+                                        aI0
+                                        aa.""" %long(self.x_offset_backe)
         self.backen.old_profile = self.profile_tuple
         self.backen.x_offset_backe = self.x_offset_backe
         self.backen.backenlaenge = float(self.backenlaenge)
