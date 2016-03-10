@@ -67,8 +67,7 @@ class BackenAusdrehen(object):
         self.clean_up_profile()
         j = 0
         plt.plot([self.x_offset_backe+self.backenlaenge+0.5, self.old_profile[j][0]], [0, self.old_profile[j][1]], 'r-')
-        plt.fill_between([self.x_offset_backe+self.backenlaenge+0.5, self.x_offset_backe+self.backenlaenge+0.5,
-                          self.old_profile[j][0]], [0, self.ausdrehlimit_z+0.5, self.ausdrehlimit_z+0.5], color='b')
+        plt.fill_between([self.x_offset_backe+self.backenlaenge+0.5, self.x_offset_backe+self.backenlaenge+0.5, self.old_profile[j][0]], [0, self.ausdrehlimit_z+0.5, self.ausdrehlimit_z+0.5], color='b')
         while j < len(self.old_profile):
             if j < len(self.old_profile)-1:
                 plt.plot([self.old_profile[j][0], self.old_profile[j][0]],
@@ -90,7 +89,7 @@ class BackenAusdrehen(object):
         Es wird geprueft, auf welche hoehe die Spannstufe gelegt werden muss. Dazu wird geprueft wie weit die
         Backen an der x-Position abgedreht sind. Die hoehe + spannflaechenhoehe wird dann in new_profile geschrieben.
         Ausserdem wird auch noch die naechste Koordinate ins Array geschrieben, die das Ende der Spannstufe beschreibt
-        :param new_profile: die ersten Koordinaten, die aus den Parametern des Bauteils abgeleitet wurden
+        : new_profile: die ersten Koordinaten, die aus den Parametern des Bauteils abgeleitet wurden
         :return: new_profile enthaelt jetzt die Anfangs- und die Endkoordinate der Spannstufe
         """
         # current_x = 0

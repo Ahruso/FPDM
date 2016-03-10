@@ -187,7 +187,10 @@ class fp_GUI(object):
         
         
         fd.write("M30")
+
         fd.close()
+
+
         
         
         return gcode
@@ -469,6 +472,8 @@ class fp_GUI(object):
         elif self.num_pad_btn_bt.get_active():
             self.manual_tbl_bt.hide()
             self.num_pad_tbl_bt.show()
+
+
 
         # self.time2 = time.time()
         #self.s.poll()
@@ -856,7 +861,10 @@ class fp_GUI(object):
         #print "2"
         self.radius_hoehe = float(self.hoehe_rad_buf.get_text())
         self.schnitttiefe = float(self.schnitttiefe_buf.get_text())
-        self.aufl = float(self.aufl_buf.get_text())
+        if self.more_aufl.get_active():
+            self.aufl = float(self.aufl_buf.get_text())
+        else:
+            self.aufl = self.max_aufl
         self.spannfl = float(self.spannfl_buf.get_text())
         
         #if self.radius+self.aufl<self.durchm/2-self.x_offset_backe:
@@ -1008,13 +1016,14 @@ class fp_GUI(object):
                     fd.write("g01 X%3.3f Z%3.3f F%f (5)\n" %((i[1][0]),(self.z_offset_backe+i[1][1]),self.cutting_speed_max))
                     fd.write("g01 X%3.3f Z%3.3f F%f (6)\n" %((i[0][0]),(self.z_offset_backe+i[1][1]),self.cutting_speed_max))
 
-                    if self.aufl >3.0:
-                        fd.write("g01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-3.0+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2))
-                        fd.write("g03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-3.0),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed))
-                    else:
-                        fd.write("g01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-self.aufl+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2))
-                        fd.write("g03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-self.aufl),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed))
-
+                    # if self.aufl >3.0:
+                    #     fd.write("g01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-3.0+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2))
+                    #     fd.write("g03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-3.0),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed))
+                    # else:
+                    fd.write("xxg01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-self.aufl+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2))
+                    fd.write("xxg03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-self.aufl),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed))
+                    print "xxg01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-self.aufl+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2)
+                    print "xxg03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-self.aufl),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed)
                     self.auflageflaeche_hoehe_m_schlichter = self.z_offset_backe+i[1][1]+self.schlichter_comp #schlichter kompensation
 
                 else:
@@ -3494,12 +3503,12 @@ class fp_GUI(object):
         self.bt_mode = True
         self.setup_referenzfahrt.clicked()
         self.length_ist = float(self.length_ist_buf.get_text())
-        self.length_soll = float(self.length_soll_buf.get_text())
+        self.length_soll = float(self.length_soll_buf.get_text()) + float(self.ofs_length_buf.get_text())
         self.radius_hoehe = float(self.hoehe_rad_buf.get_text())
         self.bohrung_durchm    = float(self.bohrung_durchm_buf.get_text())
         self.naben_durchm = float(self.naben_durchm_buf.get_text())
         self.durchm = float(self.durchm_buf.get_text())
-        self.length_fase = float(self.length_fase_buf.get_text())
+        self.length_fase = float(self.length_fase_buf.get_text()) + float(self.ofs_fase_buf.get_text())
         self.radius_kante = float(self.radius_kante_buf.get_text())
         if self.durchm/2 > self.x_offset_backe+self.backenlaenge:
             self.gcode_error_buff.insert(self.gcode_error_buff.get_end_iter() , "Der Durchmesser ist zu gross fuer die Backen\n")
@@ -3577,7 +3586,10 @@ class fp_GUI(object):
         #print "2"
         self.radius_hoehe = float(self.hoehe_rad_buf.get_text())
         self.schnitttiefe = float(self.schnitttiefe_buf.get_text())
-        self.aufl = float(self.aufl_buf.get_text())
+        if self.more_aufl.get_active():
+            self.aufl = float(self.aufl_buf.get_text())
+        else:
+            self.aufl = self.max_aufl
         self.spannfl = float(self.spannfl_buf.get_text())
         
         #if self.radius+self.aufl<self.durchm/2-self.x_offset_backe and self.test_mode == 0:
@@ -3593,6 +3605,9 @@ class fp_GUI(object):
             self.announce_error()
             return 0
         self.bauteil_prog_ready = True
+        gcode = self.bauteil_berechnen()
+
+
     #def on_auto_start_clicked(self, widget, data=None):
         #self.c.mode(linuxcnc.MODE_AUTO)
         #self.c.wait_complete(1)
@@ -3677,8 +3692,65 @@ class fp_GUI(object):
         
     def on_window1_leave_notify_event(self, widget, data=None):
         self.window1.hide()
-        
+
+    def on_ofs_length_mm_clicked(self,widget, data=None):
+        ofs_increment = -0.1
+        ofs = float(self.ofs_length_buf.get_text()) + ofs_increment
+        self.ofs_length_buf.set_text(str(ofs), len(str(ofs))  )
+
+    def on_ofs_length_m_clicked(self,widget, data=None):
+        ofs_increment = -0.01
+        ofs = float(self.ofs_length_buf.get_text()) + ofs_increment
+        self.ofs_length_buf.set_text(str(ofs), len(str(ofs))  )
+
+    def on_ofs_length_p_clicked(self,widget, data=None):
+        ofs_increment = 0.01
+        ofs = float(self.ofs_length_buf.get_text()) + ofs_increment
+        self.ofs_length_buf.set_text(str(ofs), len(str(ofs))  )
+
+
+    def on_ofs_length_pp_clicked(self,widget, data=None):
+        ofs_increment = 0.1
+        ofs = float(self.ofs_length_buf.get_text()) + ofs_increment
+        self.ofs_length_buf.set_text(str(ofs), len(str(ofs))  )
+
+
+    def on_ofs_fase_mm_clicked(self,widget, data=None):
+        ofs_increment = -0.1
+        ofs = float(self.ofs_fase_buf.get_text()) + ofs_increment
+        self.ofs_fase_buf.set_text(str(ofs), len(str(ofs))  )
+
+
+    def on_ofs_fase_m_clicked(self,widget, data=None):
+        ofs_increment = -0.01
+        ofs = float(self.ofs_fase_buf.get_text()) + ofs_increment
+        self.ofs_fase_buf.set_text(str(ofs), len(str(ofs))  )
+
+    def on_ofs_fase_p_clicked(self,widget, data=None):
+        ofs_increment = 0.01
+        ofs = float(self.ofs_fase_buf.get_text()) + ofs_increment
+        self.ofs_fase_buf.set_text(str(ofs), len(str(ofs))  )
+
+    def on_ofs_fase_pp_clicked(self,widget, data=None):
+        ofs_increment = 0.1
+        ofs = float(self.ofs_fase_buf.get_text()) + ofs_increment
+        self.ofs_fase_buf.set_text(str(ofs), len(str(ofs))  )
+
+    def on_ofs_schntt_m_clicked(self, widget, data=None):
+        ofs_increment = -0.01
+        ofs = float(self.schnitttiefe_buf.get_text()) + ofs_increment
+        self.schnitttiefe_buf.set_text(str(ofs), len(str(ofs))  )
+
+    def on_ofs_schntt_p_clicked(self, widget, data=None):
+        ofs_increment = 0.01
+        ofs = float(self.schnitttiefe_buf.get_text()) + ofs_increment
+        self.schnitttiefe_buf.set_text(str(ofs), len(str(ofs))  )
+
+
+
+
     def __init__(self):#, inifile):
+        self.max_aufl = 3
         self.backen_ordner = "backen_ausdrehen/"
         self.bauteil_ordner = "bauteil_bearbeiten/"
         self.file_loaded = False
@@ -3769,6 +3841,12 @@ class fp_GUI(object):
         self.key_is_still_pressed = False
         self.save_new_file_window.set_keep_above(True)
         self.save_new_file_window.fullscreen()
+        self.ofs_length_tf = self.builder.get_object("ofs_length_tf")
+        self.ofs_length_buf = self.builder.get_object("ofs_length_buf")
+        self.ofs_fase_tf = self.builder.get_object("ofs_fase_tf")
+        self.ofs_fase_buf = self.builder.get_object("ofs_fase_buf")
+        self.more_aufl = self.builder.get_object("more_aufl")
+        # self.ofs_schntt_buf = self.builder.get_object("ofs_schntt_buf")
         '''
         Das externe Logfile wird gelesen und fuer die entsprechenden Werte im Programm ausgewertet:
         -bauteillaenge_offset
@@ -3836,7 +3914,7 @@ class fp_GUI(object):
         self.rad_buf = self.builder.get_object("rad_buf")
         self.hoehe_rad_buf = self.builder.get_object("hoehe_rad_buf")
         self.schnittgeschw_buf = self.builder.get_object("schnittgeschw_buf")
-        self.schnitttiefe_buf = self.builder.get_object("schnitttiefe_buf")
+        self.schnitttiefe_buf = self.builder.get_object("ofs_schntt_buf")#self.builder.get_object("schnitttiefe_buf")
         self.randbreite_buf    = self.builder.get_object("randbreite_buf")
         self.randhoehe_buf = self.builder.get_object("randhoehe_buf")
         self.load_backe_window = self.builder.get_object("load_backe_window")
