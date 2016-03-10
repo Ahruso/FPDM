@@ -1020,10 +1020,8 @@ class fp_GUI(object):
                     #     fd.write("g01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-3.0+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2))
                     #     fd.write("g03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-3.0),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed))
                     # else:
-                    fd.write("xxg01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-self.aufl+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2))
-                    fd.write("xxg03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-self.aufl),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed))
-                    print "xxg01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-self.aufl+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2)
-                    print "xxg03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-self.aufl),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed)
+                    fd.write("g01 X%3.3f Z%3.3f F%f (1)\n" %((i[0][0]-self.aufl+0.1),(self.z_offset_backe+i[1][1]),self.cutting_speed_max/2))
+                    fd.write("g03 g18 X%3.3f Z%3.3f R%3.3f F%f\n" %(round((i[0][0]-self.aufl),3), round(self.z_offset_backe+i[1][1]+0.1,3),round(0.1,3), self.radius_cutting_speed))
                     self.auflageflaeche_hoehe_m_schlichter = self.z_offset_backe+i[1][1]+self.schlichter_comp #schlichter kompensation
 
                 else:
@@ -2847,7 +2845,7 @@ class fp_GUI(object):
         #self.c.mode(linuxcnc.MODE_AUTO)
         
     
-    def on_setup_btn_clicked(self, widget, data=None):
+    def on_setup_btn_clicked(self, widget, data=None):#Backen Werkzeugwechsel Button
         #self.setup_window.show()
         self.gcode_error_buff.insert(self.gcode_error_buff.get_end_iter() , "::backen_werzeugwechsel:: btn muss neu implementiert werden.\n")
         self.announce_error()
